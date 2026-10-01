@@ -1,0 +1,23 @@
+const terms=[
+  {name:'rock',emoji:'🪨',beats:['paper','water','hammer','earthquake','firefighter','fire','explosion','dynamite','jackhammer','acid','erosion','volcano','bulldozer']},
+  {name:'firefighter',emoji:'🧑‍🚒',beats:['fire','smoke','flame','candle']},
+  {name:'paper',emoji:'📄',beats:['scissors','fire','wind','shredder']},
+  {name:'fire',emoji:'🔥',beats:['water','rain','ice','extinguisher']},
+  {name:'water',emoji:'💧',beats:['sponge','sun','drought','towel']},
+  {name:'sun',emoji:'☀️',beats:['moon','cloud','night','eclipse']},
+  {name:'moon',emoji:'🌙',beats:['sun','day','wolf','telescope']},
+  {name:'dog',emoji:'🐕',beats:['cat','bone','walk','treat']},
+  {name:'cat',emoji:'🐈',beats:['dog','allergy','vacuum','laser']},
+  {name:'carnival',emoji:'🎭',beats:['silence','rain','work','monday']},
+  {name:'winter',emoji:'❄️',beats:['summer','fire','coat','sun']}
+];
+const game=document.querySelector('.game'),current=document.querySelector('#current'),answer=document.querySelector('#answer'),submit=document.querySelector('#submit'),feedback=document.querySelector('#feedback'),streakEl=document.querySelector('#streak'),roundEl=document.querySelector('#round'),status=document.querySelector('#status'),chain=document.querySelector('#chain'),chainCount=document.querySelector('#chain-count'),restart=document.querySelector('#restart');
+let target,streak=0,round=0,used=[];
+function normalize(value){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ')}
+function findTerm(value){const key=normalize(value);return terms.find(term=>term.name===key)}
+function addChain(label,emoji,result){used.push({label,emoji,result});chain.innerHTML=used.map((item,index)=>`<li class="${index===used.length-1?'current-word':''}"><span>${item.emoji} ${item.label}</span><small>${index===0?'START':item.result?'BEATS':'LOST'}</small></li>`).join('');chainCount.textContent=`${used.length} WORD${used.length===1?'':'S'}`}
+function setTarget(term){target=term;current.textContent=term.emoji;roundEl.textContent=round;answer.value='';answer.focus();if(window.gsap&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){gsap.fromTo(current,{y:90,opacity:0,rotate:-8},{y:0,opacity:1,rotate:0,duration:.42,ease:'back.out(1.7)'});gsap.fromTo('.input-row',{y:24,opacity:0},{y:0,opacity:1,duration:.28,delay:.1,ease:'power2.out'})}}
+function start(){game.classList.remove('lost');status.textContent='PLAYING';feedback.textContent='TRUE or FALSE';streak=0;round=0;used=[];streakEl.textContent='0';roundEl.textContent='0';chain.innerHTML='';chainCount.textContent='0 WORDS';setTarget(terms[0]);addChain('rock','🪨',true)}
+function emojiFor(value){const key=normalize(value);const icons={fighter:'🥊',firefighter:'🧑‍🚒',fire:'🔥',water:'💧',paper:'📄',rock:'🪨',dog:'🐕',cat:'🐈',banana:'🍌',sun:'☀️',moon:'🌙',carnival:'🎭',winter:'❄️',summer:'☀️',love:'❤️',heart:'❤️',money:'💰',car:'🚗',house:'🏠',tree:'🌳',flower:'🌸',fish:'🐟',robot:'🤖',ghost:'👻',pizza:'🍕',coffee:'☕',music:'🎵',rain:'🌧️',snow:'❄️',earthquake:'🌋',hammer:'🔨','homem aranha':'🕷️','spider man':'🕷️','super man':'🦸','superman':'🦸',zelda:'🗡️',link:'🗡️',sword:'⚔️',wizard:'🧙',dragon:'🐉',king:'👑',queen:'👸',school:'🏫',book:'📚',computer:'💻',phone:'📱',airplane:'✈️',carro:'🚗',casa:'🏠',arvore:'🌳',musica:'🎵',chuva:'🌧️',gato:'🐈',cachorro:'🐕',fogo:'🔥',agua:'💧'};return icons[key]||'❔'}
+function lose(text){game.classList.add('lost');status.textContent='GAME OVER';feedback.textContent='FALSE — '+text;submit.disabled=false;answer.disabled=false;addChain(text,emojiFor(text),false)}
+async function play(){if(game.classList.contains('lost')){feedback.textContent='PRESS RESTART TO PLAY AGAIN';return}const raw=answer.value.trim(),key=normalize(raw);if(!key){feedback.textContent='TYPE AN ANSWER';return}if(used.some(item=>normalize(item.label)===key)){feedback.textContent='ALREADY USED — TRY ANOTHER';return}submit.disabled=true;feedback.textContent='JEV IS JUDGING…';try{const response=await fetch('/api/judge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current:target.name,answer:raw})});const result=await response.json();const next=findTerm(raw)||{name:key,emoji:result.emoji,beats:[]};if(!result.accepted){lose(raw);return}round++;streak++;streakEl.textContent=streak;feedback.textContent='TRUE — JEV ACCEPTED';addChain(raw,result.emoji,true);setTarget(next)}catch{feedback.textContent='JEV OFFLINE';}finally{if(!game.classList.contains('lost'))submit.disabled=false}}submit.addEventListener('click',play);answer.addEventListener('keydown',event=>{if(event.key==='Enter')play()});restart.addEventListener('click',start);start();

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WHAT BEATS?</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="game">
+    <header><span>WHAT BEATS?</span><span id="status">READY</span></header>
+    <section class="intro"><div class="rock">🪨</div><h1>what beats<br><em>rock?</em></h1><p id="prompt">JEV VERSION / TYPE SOMETHING THAT WINS</p></section>
+    <section class="arena">
+      <div class="current" id="current">🪨</div>
+      <div class="input-row"><input id="answer" autocomplete="off" placeholder="your answer" /><button id="submit">GO ↗</button></div>
+      <div class="feedback" id="feedback">TRUE or FALSE</div>
+    </section>
+    <section class="score"><span>STREAK <b id="streak">0</b></span><span>ROUND <b id="round">0</b></span></section>
+    <section class="history"><div class="history-head"><span>CHAIN</span><span id="chain-count">0 WORDS</span></div><ol id="chain"></ol></section>
+    <button class="restart" id="restart">RESTART ↗</button>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
